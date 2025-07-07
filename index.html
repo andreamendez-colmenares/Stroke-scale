@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stroke Code Assistant</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        
+        header {
+            background: #d32f2f;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: white;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #1976d2;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 0 8px 8px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .checklist-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .checklist-item.checked {
+            background: #e8f5e9;
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .checklist-item label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .warning {
+            background: #ffebee;
+            border-left: 4px solid #d32f2f;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .dosing-calculator {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .dosing-calculator input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100px;
+            margin: 0 10px;
+        }
+        
+        .dosing-result {
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        
+        .nihss-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        
+        .nihss-item h4 {
+            margin-bottom: 10px;
+            color: #1976d2;
+        }
+        
+        .nihss-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .nihss-option {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .nihss-option:hover {
+            background: #e3f2fd;
+        }
+        
+        .nihss-option input[type="radio"] {
+            margin-right: 10px;
+        }
+        
+        .score-display {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1976d2;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .reset-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            font-weight: 600;
+        }
+        
+        h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>STROKE CODE CHECKLIST</h1>
+            <div class="timer" id="timer">00:00</div>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" id="tab-prescreen">Pre-Screen</button>
+            <button class="tab" id="tab-tnk">TNK Checklist</button>
+            <button class="tab" id="tab-consent">Consent</button>
+            <button class="tab" id="tab-nihss">NIHSS</button>
+        </div>
+        
+        <!-- Pre-Screen Tab -->
+        <div id="prescreen" class="tab-content active">
+            <h3>Initial Checks</h3>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre1">
+                <label for="pre1"><strong>BP:</strong></label>
+                <input type="number" style="width: 60px; margin: 0 5px;" placeholder="SBP"> /
+                <input type="number" style="width: 60px; margin: 0 5px;" placeholder="DBP">
+                <span style="color: #d32f2f; font-weight: bold;">(must be <185/110)</span>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre2">
+                <label for="pre2"><strong>Blood Glucose:</strong></label>
+                <input type="number" style="width: 80px; margin: 0 10px;" placeholder="mg/dL">
+                <span style="color: #d32f2f; font-weight: bold;">(must be >50)</span>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre3">
+                <label for="pre3"><strong>Labs:</strong> Order INR, PT/PTT, CBC</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre4">
+                <label for="pre4"><strong>Anticoagulation:</strong> Check warfarin/DOACs</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre5">
+                <label for="pre5"><strong>Bleeding History:</strong> Any recent bleeding</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre6">
+                <label for="pre6"><strong>Head Trauma:</strong> Any in past 3 months</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre7">
+                <label for="pre7"><strong>Recent Surgery:</strong> Major surgery in past 14 days</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre8">
+                <label for="pre8"><strong>Last Known Well:</strong> Time established and <4.5 hours</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pre9">
+                <label for="pre9"><strong>CT Ordered:</strong> Non-contrast head CT</label>
+            </div>
+        </div>
+        
+        <!-- TNK Checklist Tab -->
+        <div id="tnk" class="tab-content">
+            <div class="warning">
+                <strong>ABSOLUTE CONTRAINDICATIONS:</strong> ICH, >4.5hrs, active bleeding, known intracranial mass, recent stroke (3 months)
+            </div>
+            
+            <h3>TNK Eligibility</h3>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk1">
+                <label for="tnk1">CT completed - No hemorrhage</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk2">
+                <label for="tnk2">Last known well <4.5 hours</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk3">
+                <label for="tnk3">No active bleeding</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk4">
+                <label for="tnk4">No recent surgery (14 days)</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk5">
+                <label for="tnk5">BP <185/110</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk6">
+                <label for="tnk6">INR ≤1.7 (if on warfarin)</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk7">
+                <label for="tnk7">Platelets >100,000</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk8">
+                <label for="tnk8">No prior ICH ever</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk9">
+                <label for="tnk9">No known intracranial mass</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tnk10">
+                <label for="tnk10">No stroke in past 3 months</label>
+            </div>
+            
+            <div class="dosing-calculator">
+                <h3>TNK Dosing</h3>
+                <label>Weight (kg):</label>
+                <input type="number" id="weight" placeholder="kg">
+                <div class="dosing-result" id="dose-result"></div>
+            </div>
+        </div>
+        
+        <!-- Consent Tab -->
+        <div id="consent" class="tab-content">
+            <h3>TNK Consent Points</h3>
+            <div class="checklist-item">
+                <input type="checkbox" id="consent1">
+                <label for="consent1">Explained: Having a stroke from blood clot</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="consent2">
+                <label for="consent2">TNK is a clot-busting medication</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="consent3">
+                <label for="consent3">Benefits: Can restore blood flow</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="consent4">
+                <label for="consent4">Risk: 3-4% chance of bleeding in brain</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="consent5">
+                <label for="consent5">Some people improve on their own, but TNK gives much better chance of recovery</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="consent6">
+                <label for="consent6">The sooner we give it, the better it works</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="consent7">
+                <label for="consent7">Questions answered</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="consent8">
+                <label for="consent8">Consent obtained</label>
+            </div>
+        </div>
+        
+        <!-- NIHSS Tab -->
+        <div id="nihss" class="tab-content">
+            <h3>NIH Stroke Scale</h3>
+            
+            <div class="nihss-item">
+                <h4>1a. Level of Consciousness</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1a" value="0">
+                        0 - Alert
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1a" value="1">
+                        1 - Drowsy
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1a" value="2">
+                        2 - Stuporous
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1a" value="3">
+                        3 - Coma
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>1b. Questions (Month, Age)</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1b" value="0">
+                        0 - Both correct
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1b" value="1">
+                        1 - One correct
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1b" value="2">
+                        2 - Neither correct
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>1c. Commands (Close eyes, Make fist)</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1c" value="0">
+                        0 - Both correct
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1c" value="1">
+                        1 - One correct
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss1c" value="2">
+                        2 - Neither correct
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>2. Best Gaze</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss2" value="0">
+                        0 - Normal
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss2" value="1">
+                        1 - Partial gaze palsy
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss2" value="2">
+                        2 - Forced deviation
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>3. Visual Fields</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss3" value="0">
+                        0 - No visual loss
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss3" value="1">
+                        1 - Partial hemianopia
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss3" value="2">
+                        2 - Complete hemianopia
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss3" value="3">
+                        3 - Bilateral hemianopia
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>4. Facial Palsy</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss4" value="0">
+                        0 - Normal
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss4" value="1">
+                        1 - Minor paralysis
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss4" value="2">
+                        2 - Partial paralysis
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss4" value="3">
+                        3 - Complete paralysis
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>5. Motor Arm (Right)</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5a" value="0">
+                        0 - No drift
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5a" value="1">
+                        1 - Drift
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5a" value="2">
+                        2 - Some effort against gravity
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5a" value="3">
+                        3 - No effort against gravity
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5a" value="4">
+                        4 - No movement
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>5. Motor Arm (Left)</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5b" value="0">
+                        0 - No drift
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5b" value="1">
+                        1 - Drift
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5b" value="2">
+                        2 - Some effort against gravity
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5b" value="3">
+                        3 - No effort against gravity
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss5b" value="4">
+                        4 - No movement
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>6. Motor Leg (Right)</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6a" value="0">
+                        0 - No drift
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6a" value="1">
+                        1 - Drift
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6a" value="2">
+                        2 - Some effort against gravity
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6a" value="3">
+                        3 - No effort against gravity
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6a" value="4">
+                        4 - No movement
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>6. Motor Leg (Left)</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6b" value="0">
+                        0 - No drift
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6b" value="1">
+                        1 - Drift
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6b" value="2">
+                        2 - Some effort against gravity
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6b" value="3">
+                        3 - No effort against gravity
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss6b" value="4">
+                        4 - No movement
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>7. Limb Ataxia</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss7" value="0">
+                        0 - Absent
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss7" value="1">
+                        1 - Present in one limb
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss7" value="2">
+                        2 - Present in two limbs
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>8. Sensory</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss8" value="0">
+                        0 - Normal
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss8" value="1">
+                        1 - Mild to moderate loss
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss8" value="2">
+                        2 - Severe to total loss
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>9. Best Language</h4>
+                <div style="background: #e3f2fd; padding: 15px; margin-bottom: 15px; border-radius: 8px;">
+                    <p><strong>Assess:</strong> Fluency, Naming, Comprehension, Repetition</p>
+                </div>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss9" value="0">
+                        0 - No aphasia
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss9" value="1">
+                        1 - Mild-moderate aphasia
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss9" value="2">
+                        2 - Severe aphasia
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss9" value="3">
+                        3 - Mute/global aphasia
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>10. Dysarthria</h4>
+                <div style="background: #e3f2fd; padding: 10px; margin-bottom: 10px; border-radius: 8px;">
+                    <p>Repeat: <strong>"Mama, Tip-top, Fifty-fifty, Thanks, Huckleberry, Baseball player"</strong></p>
+                </div>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss10" value="0">
+                        0 - Normal articulation
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss10" value="1">
+                        1 - Mild-moderate dysarthria
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss10" value="2">
+                        2 - Severe/unintelligible
+                    </label>
+                </div>
+            </div>
+            
+            <div class="nihss-item">
+                <h4>11. Extinction/Inattention</h4>
+                <div class="nihss-options">
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss11" value="0">
+                        0 - Normal
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss11" value="1">
+                        1 - One modality
+                    </label>
+                    <label class="nihss-option">
+                        <input type="radio" name="nihss11" value="2">
+                        2 - Two modalities
+                    </label>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 8px;">
+                <p style="font-size: 18px; margin-bottom: 10px;"><strong>To Reset:</strong></p>
+                <p style="font-size: 16px;">Refresh the page (pull down on mobile or press F5)</p>
+                <p style="font-size: 14px; color: #666;">This clears everything and restarts the timer</p>
+            </div>
+            
+            <div class="info-box">
+                <strong>LVO Screen:</strong> Consider thrombectomy if NIHSS ≥6 with cortical signs
+            </div>
+        </div>
+        
+        <div class="score-display" id="score-display" style="display: none;">
+            NIHSS: <span id="nihss-score">0</span>
+        </div>
+    </div>
+    
+    <script>
+        // Timer functionality
+        let startTime = Date.now();
+        let timerInterval = setInterval(updateTimer, 1000);
+        
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Initialize everything when page loads
+        window.onload = function() {
+            // Set up tab clicking
+            document.getElementById('tab-prescreen').onclick = function() { showTab('prescreen'); };
+            document.getElementById('tab-tnk').onclick = function() { showTab('tnk'); };
+            document.getElementById('tab-consent').onclick = function() { showTab('consent'); };
+            document.getElementById('tab-nihss').onclick = function() { showTab('nihss'); };
+            
+            // Set up reset button
+            document.getElementById('resetButton').onclick = function() {
+                if (confirm('Reset for new patient?')) {
+                    // Reload the page - simplest way to reset everything
+                    window.location.reload();
+                }
+            };
+            
+            // Set up checkbox styling
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            for (let i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].onchange = function() {
+                    const parent = this.parentElement;
+                    if (this.checked) {
+                        parent.className = 'checklist-item checked';
+                    } else {
+                        parent.className = 'checklist-item';
+                    }
+                };
+            }
+            
+            // Set up NIHSS radio buttons
+            const radios = document.querySelectorAll('input[type="radio"]');
+            for (let i = 0; i < radios.length; i++) {
+                radios[i].onchange = updateNIHSS;
+            }
+            
+            // Set up weight calculator
+            const weightInput = document.getElementById('weight');
+            if (weightInput) {
+                weightInput.onchange = calculateDose;
+                weightInput.oninput = calculateDose;
+            }
+        };
+        
+        // Show specific tab
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < contents.length; i++) {
+                contents[i].className = 'tab-content';
+            }
+            
+            // Remove active from all tabs
+            const tabs = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].className = 'tab';
+            }
+            
+            // Show selected content
+            document.getElementById(tabName).className = 'tab-content active';
+            
+            // Make selected tab active
+            if (tabName === 'prescreen') document.getElementById('tab-prescreen').className = 'tab active';
+            else if (tabName === 'tnk') document.getElementById('tab-tnk').className = 'tab active';
+            else if (tabName === 'consent') document.getElementById('tab-consent').className = 'tab active';
+            else if (tabName === 'nihss') document.getElementById('tab-nihss').className = 'tab active';
+            
+            // Show/hide NIHSS score
+            const scoreDisplay = document.getElementById('score-display');
+            if (tabName === 'nihss') {
+                scoreDisplay.style.display = 'block';
+            } else {
+                scoreDisplay.style.display = 'none';
+            }
+        }
+        
+        // TNK Dosing Calculator
+        function calculateDose() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const doseResult = document.getElementById('dose-result');
+            
+            if (isNaN(weight) || weight <= 0) {
+                doseResult.innerHTML = '';
+                return;
+            }
+            
+            const dose = Math.min(0.25 * weight, 25);
+            doseResult.innerHTML = '<strong>' + dose.toFixed(1) + ' mg</strong> (max 25mg)';
+        }
+        
+        // NIHSS Score Calculation
+        function updateNIHSS() {
+            let total = 0;
+            const nihssItems = ['nihss1a', 'nihss1b', 'nihss1c', 'nihss2', 'nihss3', 'nihss4', 
+                               'nihss5a', 'nihss5b', 'nihss6a', 'nihss6b', 'nihss7', 'nihss8', 
+                               'nihss9', 'nihss10', 'nihss11'];
+            
+            for (let i = 0; i < nihssItems.length; i++) {
+                const radios = document.getElementsByName(nihssItems[i]);
+                for (let j = 0; j < radios.length; j++) {
+                    if (radios[j].checked) {
+                        total += parseInt(radios[j].value);
+                    }
+                }
+            }
+            
+            document.getElementById('nihss-score').textContent = total;
+        }
+        
+        // Reset all data
+        function resetAllData() {
+            try {
+                if (!confirm('Reset for new patient?')) {
+                    return;
+                }
+                
+                // Clear all checkboxes
+                var checkboxes = document.getElementsByTagName('input');
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type === 'checkbox') {
+                        checkboxes[i].checked = false;
+                        var parent = checkboxes[i].parentElement;
+                        if (parent && parent.className.includes('checklist-item')) {
+                            parent.className = 'checklist-item';
+                        }
+                    }
+                }
+                
+                // Clear all radio buttons
+                var radios = document.getElementsByTagName('input');
+                for (var i = 0; i < radios.length; i++) {
+                    if (radios[i].type === 'radio') {
+                        radios[i].checked = false;
+                    }
+                }
+                
+                // Clear weight and dose
+                var weightField = document.getElementById('weight');
+                if (weightField) weightField.value = '';
+                
+                var doseField = document.getElementById('dose-result');
+                if (doseField) doseField.innerHTML = '';
+                
+                // Reset NIHSS score
+                var scoreField = document.getElementById('nihss-score');
+                if (scoreField) scoreField.textContent = '0';
+                
+                // Reset timer
+                startTime = Date.now();
+                
+                // Go back to first tab
+                showTab('prescreen');
+                
+            } catch (error) {
+                alert('Error resetting form: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
