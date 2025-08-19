@@ -3,19 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stroke Code Assistant — Ischemic MVP</title>
+  <title>Stroke Code Assistant — v6 (TNK-focused)</title>
   <style>
     :root{--brand:#7b1fa2;--accent:#1976d2;--ok:#2e7d32;--warn:#f57c00;--danger:#d32f2f;--bg:#f5f5f5;--card:#ffffff;--muted:#6b7280}
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#111;line-height:1.5}
-    .container{max-width:960px;margin:0 auto;padding:12px}
-    header{background:var(--brand);color:#fff;padding:14px 16px;border-radius:10px;margin:8px 0 14px}
-    header h1{font-size:22px;font-weight:800;letter-spacing:.3px}
-    .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-    .timer{font-size:18px;font-weight:700}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,Arial,sans-serif;background:var(--bg);color:#111;line-height:1.5}
+    .container{max-width:960px;margin:88px auto 120px;padding:12px}
+
+    header{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--brand);color:#fff;border-bottom:1px solid rgba(0,0,0,.15)}
+    .head-inner{max-width:960px;margin:0 auto;padding:10px 12px;display:flex;gap:8px;align-items:center}
+    header h1{font-size:20px;font-weight:800;margin-right:6px;white-space:nowrap}
+    .timer{font-variant-numeric:tabular-nums;font-size:18px;font-weight:800;background:rgba(255,255,255,.18);padding:6px 10px;border-radius:999px}
+    .btn{border:none;border-radius:10px;padding:8px 10px;font-weight:800;cursor:pointer}
+    .btn.ghost{background:rgba(255,255,255,.18);color:#fff}
+    .btn.danger{background:#c62828;color:#fff}
+    .btn.primary{background:#1565c0;color:#fff}
+    .spacer{flex:1}
 
     .tabs{display:flex;gap:6px;margin:10px 0}
-    .tab{flex:1;padding:12px 10px;border:none;border-radius:10px 10px 0 0;background:#eaeef3;font-size:15px;font-weight:700;cursor:pointer}
+    .tab{flex:1;padding:12px 10px;border:none;border-radius:10px 10px 0 0;background:#eaeef3;font-size:15px;font-weight:800;cursor:pointer}
     .tab[aria-selected="true"]{background:var(--accent);color:#fff}
     .tab-content{display:none;background:var(--card);border-radius:0 10px 10px 10px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:16px}
     .tab-content.active{display:block}
@@ -29,45 +35,47 @@
     .input.medium{width:160px}
     .input.large{width:200px}
 
-    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .seg{display:inline-flex;border:1px solid #d1d5db;border-radius:10px;overflow:hidden}
+    .seg button{padding:8px 12px;border:none;background:#fff;cursor:pointer;font-weight:800}
+    .seg button.active{background:#eef6ff;color:var(--accent)}
+
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}
     .badge.ok{background:#e8f5e9;color:var(--ok);border:1px solid #c7e6cc}
     .badge.warn{background:#fff3cd;color:var(--warn);border:1px solid #ffe08a}
     .badge.danger{background:#ffebee;color:var(--danger);border:1px solid #ffc2c2}
     .badge.info{background:#e3f2fd;color:var(--accent);border:1px solid #b6dbff}
 
-    /* NIHSS list */ 
     .nihss-item{background:#f7f8fa;padding:12px;border-radius:10px;margin-bottom:12px}
     .nihss-item h4{color:var(--accent);margin-bottom:8px}
-    .nihss-options{display:flex;flex-direction:column;gap:6px}
-    .nihss-option{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px}
-    .nihss-option:hover{background:#eef6ff}
-
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{min-width:52px;height:52px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid #cbd5e1;background:#fff;font-weight:800;cursor:pointer;user-select:none}
+    .chip:focus{outline:3px solid #90caf9;outline-offset:2px}
+    .chip.selected{outline:3px solid var(--brand);outline-offset:0}
     .score-display{position:fixed;bottom:16px;right:16px;background:var(--brand);color:#fff;padding:12px 18px;border-radius:999px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 
-    /* Segmented yes/no */
-    .seg{display:inline-flex;border:1px solid #d1d5db;border-radius:10px;overflow:hidden}
-    .seg button{padding:8px 12px;border:none;background:#fff;cursor:pointer;font-weight:700}
-    .seg button.active{background:#eef6ff;color:var(--accent)}
-
-    /* Handoff */
-    #handoff-text{width:100%;min-height:240px;border:1px solid #d1d5db;border-radius:10px;padding:12px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
-    .btn{border:none;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
-    .btn.primary{background:var(--accent);color:#fff}
+    #handoff-text{width:100%;min-height:220px;border:1px solid #d1d5db;border-radius:10px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .banner{padding:10px 12px;border-radius:8px;background:#e3f2fd;margin-top:10px;border:1px solid #90caf9;color:#0d47a1;font-weight:800}
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="row">
-        <h1>STROKE CODE — Ischemic</h1>
-        <div class="timer" id="timer" aria-live="polite">00:00</div>
-      </div>
-    </header>
+  <header>
+    <div class="head-inner">
+      <h1>STROKE CODE</h1>
+      <div class="timer" id="timer" aria-live="polite">00:00</div>
+      <button class="btn ghost" id="startTimer">Start</button>
+      <button class="btn ghost" id="stopTimer">Stop</button>
+      <button class="btn ghost" id="resetTimer">Reset</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="copyHeader">Copy Handoff (c)</button>
+      <button class="btn danger" id="resetAll">Reset Case</button>
+    </div>
+  </header>
 
+  <div class="container">
     <div class="tabs" role="tablist" aria-label="Sections">
       <button class="tab" role="tab" id="tab-prescreen" aria-controls="prescreen" aria-selected="true">Pre-Screen</button>
       <button class="tab" role="tab" id="tab-nihss" aria-controls="nihss" aria-selected="false">NIHSS</button>
-      <button class="tab" role="tab" id="tab-elig" aria-controls="elig" aria-selected="false">IVT Eligibility</button>
+      <button class="tab" role="tab" id="tab-elig" aria-controls="elig" aria-selected="false">TNK Eligibility</button>
       <button class="tab" role="tab" id="tab-handoff" aria-controls="handoff" aria-selected="false">Handoff</button>
     </div>
 
@@ -76,19 +84,25 @@
       <div class="block">
         <h3>Last Known Well</h3>
         <div class="inline">
-          <input type="time" id="lkw-time" class="input small" />
-          <button class="input" id="lkw-now" style="cursor:pointer">Now</button>
-          <button class="input" id="lkw-unknown" style="cursor:pointer">Unknown</button>
-          <span id="time-status" class="badge info" style="display:none"></span>
+          <input type="time" id="lkn-time" class="input small" />
+          <button class="input" id="lkn-now" style="cursor:pointer">Now</button>
+          <button class="input" id="lkn-unknown" style="cursor:pointer">Unknown</button>
+          <span id="lkn-status" class="badge info" style="display:none"></span>
+        </div>
+        <div class="inline" style="margin-top:8px">
+          <label class="muted" for="disc-time" style="width:160px">Discovery time</label>
+          <input type="time" id="disc-time" class="input small" />
         </div>
       </div>
 
       <div class="block">
         <h3>Blood Pressure</h3>
         <div class="inline">
-          <input id="bp-input" class="input large" type="text" inputmode="numeric" placeholder="SBP/DBP (e.g., 174/92)" aria-label="Blood pressure as SBP/DBP" />
+          <input id="sbp" class="input small" type="number" inputmode="numeric" placeholder="SBP" min="0" />
+          <span>/</span>
+          <input id="dbp" class="input small" type="number" inputmode="numeric" placeholder="DBP" min="0" />
           <span id="bp-status" class="badge info" style="display:none"></span>
-          <small class="muted">Goal &lt;185/110 prior to IV thrombolysis</small>
+          <small class="muted">Target &lt;185/110 before IV thrombolysis</small>
         </div>
       </div>
 
@@ -101,7 +115,7 @@
       </div>
 
       <div class="block">
-        <h3>Imaging Status</h3>
+        <h3>Imaging</h3>
         <div class="inline" style="gap:14px">
           <div>
             <div class="muted" style="margin-bottom:4px">CT Head</div>
@@ -118,16 +132,27 @@
               <button data-v="negative">No LVO</button>
               <button data-v="lvo">LVO</button>
             </div>
+            <div id="lvoBanner" class="banner" style="display:none">CTA shows LVO — Consider MT pathway (page IR; transfer if needed).</div>
           </div>
         </div>
       </div>
 
       <div class="block">
-        <h3>Anticoagulation</h3>
+        <h3>On anticoagulation?</h3>
         <div class="seg" data-anticoag="status">
           <button data-v="no" class="active">No</button>
           <button data-v="yes">Yes</button>
           <button data-v="unk">Unknown</button>
+        </div>
+        <div id="last-dose-wrap" class="inline" style="display:none;margin-top:8px">
+          <label class="muted" for="last-dose" style="width:160px">Last dose</label>
+          <select id="last-dose" class="input medium">
+            <option value="lt24">&lt; 24 h</option>
+            <option value="24to48">24–48 h</option>
+            <option value="gt48">&gt; 48 h</option>
+            <option value="unk">Unknown</option>
+          </select>
+          <span class="muted">If &gt;48 h since last DOAC, TNK may be considered; anti-Xa can assist.</span>
         </div>
       </div>
     </section>
@@ -135,13 +160,13 @@
     <!-- NIHSS -->
     <section id="nihss" class="tab-content" role="tabpanel" aria-labelledby="tab-nihss">
       <h3>NIH Stroke Scale</h3>
-      <template id="nihss-option"><label class="nihss-option"><input type="radio" /> <span></span></label></template>
-      <div id="nihss-groups"></div>
+      <div id="nihssItems"></div>
+      <div class="muted" style="margin-top:6px">Click chips (0–max) or click the row to cycle. Keyboard: 0–4 sets score.</div>
     </section>
 
-    <!-- IVT Eligibility (streamlined) -->
+    <!-- TNK Eligibility -->
     <section id="elig" class="tab-content" role="tabpanel" aria-labelledby="tab-elig">
-      <h3>Rapid Core Screen</h3>
+      <h3>TNK Eligibility — Rapid Core</h3>
       <div class="block inline" style="justify-content:space-between">
         <div>Age ≥ 18</div>
         <div class="seg" data-crit="age"><button data-v="yes" class="active">Yes</button><button data-v="no">No</button></div>
@@ -151,7 +176,7 @@
         <div class="seg" data-crit="clinical"><button data-v="yes" class="active">Yes</button><button data-v="no">No</button></div>
       </div>
       <div class="block inline" style="justify-content:space-between">
-        <div>LKW &lt; 4.5 h</div>
+        <div>LKN ≤ 4.5 h</div>
         <div class="seg" data-crit="lkw"><button data-v="yes">Yes</button><button data-v="no" class="active">No</button></div>
       </div>
       <div class="block inline" style="justify-content:space-between">
@@ -159,38 +184,339 @@
         <div class="seg" data-crit="ct"><button data-v="yes">Yes</button><button data-v="no" class="active">No</button></div>
       </div>
       <div class="block inline" style="justify-content:space-between">
-        <div>BP not uncontrolled (&lt;185/110 or controlled)</div>
+        <div>BP &lt; 185/110 or controlled</div>
         <div class="seg" data-crit="bp"><button data-v="yes">Yes</button><button data-v="no" class="active">No</button></div>
       </div>
+
+      <h3 style="margin-top:16px">Absolute Contraindications (toggle any that apply)</h3>
+      <div class="block">
+        <div class="inline" style="justify-content:space-between">
+          <div>Current intracranial hemorrhage or suspected SAH</div>
+          <div class="seg" data-abs="ich"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:8px">
+          <div>Known intracranial neoplasm/AVM/aneurysm at high risk</div>
+          <div class="seg" data-abs="icmass"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:8px">
+          <div>Intracranial or spinal surgery, or serious head trauma ≤ 3 months</div>
+          <div class="seg" data-abs="neurosx3mo"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:8px">
+          <div>Ischemic stroke ≤ 3 months</div>
+          <div class="seg" data-abs="stroke3mo"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:8px">
+          <div>Active internal bleeding</div>
+          <div class="seg" data-abs="bleed"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:8px">
+          <div>Platelets &lt; 100,000</div>
+          <div class="seg" data-abs="plt"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:8px">
+          <div>INR &gt; 1.7 or PTT elevated (therapeutic heparin)</div>
+          <div class="seg" data-abs="inrptt"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:8px">
+          <div>DOAC within 48 h (unless specific assay negative)</div>
+          <div class="seg" data-abs="doac"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+        <div class="inline" style="justify-content:space-between;margin-top:8px">
+          <div>Uncontrolled BP despite treatment (&gt;185/110)</div>
+          <div class="seg" data-abs="refracbp"><button data-v="no" class="active">No</button><button data-v="yes">Yes</button></div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:16px">Coagulopathy / Labs</h3>
       <div class="block inline" style="justify-content:space-between">
-        <div>No recent head trauma/neurosurgery/ischemic stroke ≤ 3 mo</div>
-        <div class="seg" data-crit="recent3mo"><button data-v="yes" class="active">Yes</button><button data-v="no">No</button></div>
+        <div>Platelets / CBC available</div>
+        <div class="seg" data-lab="cbc"><button data-v="yes" class="active">Yes</button><button data-v="no">No</button></div>
       </div>
       <div class="block inline" style="justify-content:space-between">
-        <div>No major anticoagulation/coagulopathy</div>
-        <div class="seg" data-crit="coag"><button data-v="yes" class="active">Yes</button><button data-v="no">No</button></div>
+        <div>INR/PTT available</div>
+        <div class="seg" data-lab="inr"><button data-v="yes" class="active">Yes</button><button data-v="no">No</button></div>
       </div>
-      <div class="block inline" style="justify-content:space-between">
-        <div>Glucose ≥ 50 mg/dL</div>
-        <div class="seg" data-crit="glucose"><button data-v="yes" class="active">Yes</button><button data-v="no">No</button></div>
-      </div>
-      <div id="elig-banner" class="block" style="display:none"></div>
+
+      <div id="elig-banner" class="block" style="display:none;margin-top:10px"></div>
     </section>
 
     <!-- Handoff -->
     <section id="handoff" class="tab-content" role="tabpanel" aria-labelledby="tab-handoff">
-      <h3>Handoff (Ischemic)</h3>
+      <h3>Handoff</h3>
       <textarea id="handoff-text" readonly></textarea>
       <div class="inline" style="margin-top:10px">
         <button class="btn primary" id="copy-handoff">Copy Summary</button>
-        <span class="muted">Compiles when this tab opens.</span>
       </div>
     </section>
 
-    <!-- NIHSS summary pill -->
     <div class="score-display" id="score-display">NIHSS: <span id="nihss-score">0</span></div>
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    const $ = s=>document.querySelector(s);
+    const $$ = s=>Array.from(document.querySelectorAll(s));
+    const pad2 = n=>String(n).padStart(2,'0');
+
+    const KEY='stroke_code_v6_state';
+    let state={
+      tab:'prescreen',
+      lkn:'', disc:'',
+      sbp:'', dbp:'', glu:'',
+      ct:'pending', cta:'pending',
+      ac:'no', lastDose:'lt24',
+      crit:{age:'yes',clinical:'yes',lkw:'no',ct:'no',bp:'no'},
+      abs:{ich:'no', icmass:'no', neurosx3mo:'no', stroke3mo:'no', bleed:'no', plt:'no', inrptt:'no', doac:'no', refracbp:'no'},
+      labs:{cbc:'yes', inr:'yes'},
+      nihss:{},
+      timerRunning:false, t0:0, elapsed:0
+    };
+    function load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ state={...state,...JSON.parse(raw)} } }catch{} }
+    function save(){ localStorage.setItem(KEY, JSON.stringify(state)) }
+
+    function showTab(name){
+      $$('.tab-content').forEach(n=>n.classList.remove('active'));
+      $$('.tab').forEach(n=>n.setAttribute('aria-selected','false'));
+      $('#'+name).classList.add('active');
+      $('#tab-'+name).setAttribute('aria-selected','true');
+      $('#score-display').style.display = name==='nihss' ? 'block':'none';
+      if(name==='handoff') compileHandoff();
+      state.tab=name; save();
+    }
+
+    let intv=null;
+    function paintTimer(){
+      const sec=Math.floor(state.elapsed/1000), mm=Math.floor(sec/60), ss=sec%60;
+      $('#timer').textContent = pad2(mm)+':'+pad2(ss);
+    }
+    function startTimer(){ if(state.timerRunning) return; state.timerRunning=true; state.t0=Date.now()-state.elapsed; save(); intv=setInterval(()=>{ state.elapsed=Date.now()-state.t0; paintTimer(); }, 200); }
+    function stopTimer(){ if(!state.timerRunning) return; state.timerRunning=false; clearInterval(intv); intv=null; state.elapsed=Date.now()-state.t0; save(); }
+    function resetTimer(){ state.timerRunning=false; clearInterval(intv); intv=null; state.elapsed=0; save(); paintTimer(); }
+
+    function minutesSince(HHMM){
+      if(!HHMM) return null;
+      const now=new Date(); const today=now.toISOString().split('T')[0];
+      let dt=new Date(`${today}T${HHMM}`);
+      if(dt>now) dt.setDate(dt.getDate()-1);
+      return Math.floor((now-dt)/60000);
+    }
+    function paintLKN(){
+      const mins = minutesSince(state.lkn);
+      const el=$('#lkn-status');
+      if(mins==null){ el.style.display='none'; return; }
+      el.style.display='inline-block'; el.className='badge info';
+      if(mins<=270) el.classList.add('ok'); else if(mins<=1440) el.classList.add('warn'); else el.classList.add('danger');
+      const h=Math.floor(mins/60), m=mins%60; el.textContent = mins<=270? `Within 4.5h (${h>0?h+'h ':''}${m}m)` : mins<=1440? `Beyond 4.5h (${h>0?h+'h ':''}${m}m)` : `Late (${h>0?h+'h ':''}${m}m)`;
+      state.crit.lkw = (mins!=null && mins<=270) ? 'yes':'no';
+      save();
+    }
+
+    function paintCTA(){ $('#lvoBanner').style.display = state.cta==='lvo' ? 'block':'none'; }
+
+    function paintBP(){
+      const sbp=parseInt(state.sbp||'0',10), dbp=parseInt(state.dbp||'0',10);
+      const el=$('#bp-status');
+      if(!state.sbp || !state.dbp){ el.style.display='none'; state.crit.bp='no'; save(); return; }
+      el.style.display='inline-block'; el.className='badge info';
+      const ok=(sbp<185 && dbp<110);
+      el.textContent = ok? 'BP ok' : 'BP high';
+      el.classList.add(ok? 'ok':'danger');
+      state.crit.bp = ok? 'yes':'no'; save();
+    }
+
+    const NIHSS=[
+      {id:'1a', name:'1a. Level of Consciousness', short:'LOC', max:3},
+      {id:'1b', name:'1b. Questions (Month, Age)', short:'LOC Qs', max:2},
+      {id:'1c', name:'1c. Commands (Close eyes, Make fist)', short:'LOC Cmds', max:2},
+      {id:'2',  name:'2. Best Gaze', short:'Gaze', max:2},
+      {id:'3',  name:'3. Visual Fields', short:'Visual', max:3},
+      {id:'4',  name:'4. Facial Palsy', short:'Facial', max:3},
+      {id:'5a', name:'5a. Motor — Left Arm', short:'L Arm', max:4},
+      {id:'5b', name:'5b. Motor — Right Arm', short:'R Arm', max:4},
+      {id:'6a', name:'6a. Motor — Left Leg', short:'L Leg', max:4},
+      {id:'6b', name:'6b. Motor — Right Leg', short:'R Leg', max:4},
+      {id:'7',  name:'7. Limb Ataxia', short:'Ataxia', max:2},
+      {id:'8',  name:'8. Sensory', short:'Sensory', max:2},
+      {id:'9',  name:'9. Language', short:'Language', max:3},
+      {id:'10', name:'10. Dysarthria', short:'Dysarthria', max:2},
+      {id:'11', name:'11. Extinction/Inattention', short:'Extinction', max:2},
+    ];
+    function renderNIHSS(){
+      const root=$('#nihssItems'); root.innerHTML='';
+      NIHSS.forEach((it)=>{
+        const wrap=document.createElement('div'); wrap.className='nihss-item'; wrap.setAttribute('data-id', it.id);
+        const title=document.createElement('h4'); title.textContent=it.name; wrap.appendChild(title);
+        const chips=document.createElement('div'); chips.className='chips'; wrap.appendChild(chips);
+        for(let s=0;s<=it.max;s++){
+          const btn=document.createElement('button'); btn.type='button'; btn.className='chip'; btn.textContent=s; btn.setAttribute('data-score', s); btn.setAttribute('tabindex','0');
+          btn.addEventListener('click', ()=> setNIHSS(it.id, s));
+          btn.addEventListener('keydown', (e)=>{ if(/^[0-4]$/.test(e.key)){ const k=Number(e.key); if(k<=it.max) setNIHSS(it.id, k); } });
+          chips.appendChild(btn);
+        }
+        wrap.addEventListener('click', (e)=>{
+          if(e.target.classList.contains('chip')) return;
+          const cur=Number(state.nihss[it.id]??0);
+          const next=(cur+1)>it.max?0:(cur+1);
+          setNIHSS(it.id, next);
+        });
+        root.appendChild(wrap);
+      });
+      paintNIHSSSelection(); paintNIHSSTotal();
+    }
+    function setNIHSS(id,val){ state.nihss[id]=val; save(); paintNIHSSSelection(); paintNIHSSTotal(); }
+    function paintNIHSSSelection(){
+      $$('#nihssItems .chip').forEach(ch=>ch.classList.remove('selected'));
+      NIHSS.forEach(it=>{
+        const v=Number(state.nihss[it.id]??0);
+        const row = document.querySelector(`.nihss-item[data-id="${it.id}"]`);
+        if(!row) return;
+        const btn = row.querySelector(`.chip[data-score="${v}"]`);
+        if(btn) btn.classList.add('selected');
+      });
+    }
+    function nihssTotal(){ return NIHSS.reduce((a,it)=>a + Number(state.nihss[it.id]||0), 0) }
+    function paintNIHSSTotal(){ $('#nihss-score').textContent = nihssTotal(); }
+
+    function paintAnticoag(){ $('#last-dose-wrap').style.display = state.ac==='yes' ? 'flex':'none'; }
+
+    function paintEligibility(){
+      const coreOK = ['age','clinical','lkw','ct','bp'].every(k=>state.crit[k]==='yes');
+      const noAbs = Object.values(state.abs).every(v=>v==='no');
+      const labsOK = Object.values(state.labs).every(v=>v==='yes');
+      const b=$('#elig-banner'); b.style.display='block';
+      if(coreOK && noAbs && labsOK){
+        b.textContent='Likely TNK-eligible — proceed per protocol and dosing';
+        b.className='block';
+      }else{
+        let reasons=[];
+        if(!coreOK) reasons.push('core criteria');
+        if(!noAbs) reasons.push('absolute contraindication');
+        if(!labsOK) reasons.push('labs unavailable');
+        b.textContent='Not yet TNK-eligible or missing data ('+reasons.join(', ')+')';
+        b.className='block muted';
+      }
+    }
+
+    function compileNIHSSDeficits(){
+      // return a concise comma-separated list of nonzero NIHSS items, e.g. "L Arm=2, L Leg=2, Language=1"
+      const parts=[];
+      NIHSS.forEach(it=>{
+        const v=Number(state.nihss[it.id]||0);
+        if(v>0){
+          parts.push(`${it.short}=${v}`);
+        }
+      });
+      return parts.join(', ');
+    }
+
+    function compileHandoff(){
+      const lines=[];
+      const lkn = state.lkn || '—';
+      const disc = state.disc || '—';
+      lines.push(`LKN: ${lkn} (discovery: ${disc})`);
+      const bp = (state.sbp||'—')+'/'+(state.dbp||'—'); lines.push(`BP: ${bp}`);
+      if(state.glu) lines.push(`Glucose: ${state.glu} mg/dL`);
+      const acTxt = state.ac==='yes' ? `Yes (last dose: ${state.lastDose})` : state.ac==='no' ? 'No' : 'Unknown';
+      lines.push(`Anticoagulation: ${acTxt}`);
+      lines.push(`CT: ${state.ct.toUpperCase()} | CTA: ${state.cta.toUpperCase()}`);
+      const total = nihssTotal();
+      const deficits = compileNIHSSDeficits();
+      lines.push(`NIHSS: ${total}${deficits ? ' — ' + deficits : ''}`);
+      $('#handoff-text').value = lines.join('\n');
+    }
+    function copy(txt){
+      navigator.clipboard.writeText(txt).catch(()=>{
+        const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); ta.remove();
+      });
+    }
+
+    function bindTabs(){
+      $('#tab-prescreen').onclick=()=>showTab('prescreen');
+      $('#tab-nihss').onclick=()=>showTab('nihss');
+      $('#tab-elig').onclick=()=>showTab('elig');
+      $('#tab-handoff').onclick=()=>showTab('handoff');
+    }
+    function bindHeader(){
+      $('#startTimer').onclick=startTimer;
+      $('#stopTimer').onclick=stopTimer;
+      $('#resetTimer').onclick=resetTimer;
+      $('#copyHeader').onclick=()=>copy($('#handoff-text').value || compileHandoff());
+      $('#resetAll').onclick=()=>{ if(!confirm('Reset all fields for this case?')) return; localStorage.removeItem(KEY); location.reload(); };
+      document.addEventListener('keydown',(e)=>{
+        const k=e.key.toLowerCase();
+        if(k==='g'){ e.preventDefault(); $('#glucose').focus(); }
+        if(k==='b'){ e.preventDefault(); $('#sbp').focus(); }
+        if(k==='d'){ e.preventDefault(); $('#dbp').focus(); }
+        if(k==='l'){ e.preventDefault(); $('#lkn-time').focus(); }
+        if(k==='c'){ e.preventDefault(); copy($('#handoff-text').value || compileHandoff()); }
+        if(/^[0-4]$/.test(k) && $('#nihss').classList.contains('active')){
+          const focused=document.activeElement;
+          if(focused && focused.classList.contains('chip')){
+            const row=focused.closest('.nihss-item'); const id=row.getAttribute('data-id');
+            const val=Number(k); const max=NIHSS.find(x=>x.id===id).max;
+            if(val<=max) setNIHSS(id,val);
+          }
+        }
+      });
+    }
+    function bindInputs(){
+      $('#lkn-time').value=state.lkn||''; $('#lkn-time').addEventListener('input',()=>{ state.lkn=$('#lkn-time').value; save(); paintLKN(); });
+      $('#lkn-now').onclick=()=>{ const now=new Date(); const hh=pad2(now.getHours()), mm=pad2(now.getMinutes()); state.lkn=hh+':'+mm; $('#lkn-time').value=state.lkn; save(); paintLKN(); };
+      $('#lkn-unknown').onclick=()=>{ state.lkn=''; $('#lkn-time').value=''; save(); paintLKN(); };
+      $('#disc-time').value=state.disc||''; $('#disc-time').addEventListener('input',()=>{ state.disc=$('#disc-time').value; save(); });
+
+      $('#sbp').value=state.sbp||''; $('#sbp').addEventListener('input',()=>{ state.sbp=$('#sbp').value; save(); paintBP(); });
+      $('#dbp').value=state.dbp||''; $('#dbp').addEventListener('input',()=>{ state.dbp=$('#dbp').value; save(); paintBP(); });
+      $('#glucose').value=state.glu||''; $('#glucose').addEventListener('input',()=>{ state.glu=$('#glucose').value; save(); });
+
+      $$('[data-ct="result"] button').forEach(b=>b.onclick=()=>{
+        $$('[data-ct="result"] button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); state.ct=b.dataset.v; save();
+      });
+      $$('[data-cta="status"] button').forEach(b=>b.onclick=()=>{
+        $$('[data-cta="status"] button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); state.cta=b.dataset.v; save(); paintCTA();
+      });
+
+      $$('[data-anticoag="status"] button').forEach(b=>b.onclick=()=>{
+        $$('[data-anticoag="status"] button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); state.ac=b.dataset.v; save(); paintAnticoag();
+      });
+      $('#last-dose').value=state.lastDose||'lt24'; $('#last-dose').addEventListener('change',()=>{ state.lastDose=$('#last-dose').value; save(); });
+
+      $$('[data-crit]').forEach(seg=>{
+        const key=seg.getAttribute('data-crit');
+        seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+          seg.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+          b.classList.add('active'); state.crit[key]=b.dataset.v; save(); paintEligibility();
+        });
+      });
+
+      $$('[data-abs]').forEach(seg=>{
+        const key=seg.getAttribute('data-abs');
+        seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+          seg.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+          b.classList.add('active'); state.abs[key]=b.dataset.v; save(); paintEligibility();
+        });
+      });
+
+      $$('[data-lab]').forEach(seg=>{
+        const key=seg.getAttribute('data-lab');
+        seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+          seg.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+          b.classList.add('active'); state.labs[key]=b.dataset.v; save(); paintEligibility();
+        });
+      });
+
+      $('#copy-handoff').onclick=()=>copy($('#handoff-text').value || compileHandoff());
+    }
+
+    function init(){
+      load();
+      bindTabs(); bindHeader(); bindInputs();
+      renderNIHSS(); paintNIHSSTotal(); paintCTA(); paintBP(); paintLKN(); paintAnticoag(); paintEligibility(); compileHandoff();
+      showTab(state.tab || 'prescreen');
+      paintTimer(); if(state.timerRunning) startTimer();
+    }
+    init();
+  </script>
 </body>
 </html>
