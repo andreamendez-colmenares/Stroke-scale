@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+# Stroke app v7
+html = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stroke Code Assistant — v6 (TNK-focused)</title>
+  <title>Stroke Code Assistant — v7</title>
   <style>
     :root{--brand:#7b1fa2;--accent:#1976d2;--ok:#2e7d32;--warn:#f57c00;--danger:#d32f2f;--bg:#f5f5f5;--card:#ffffff;--muted:#6b7280}
     *{box-sizing:border-box;margin:0;padding:0}
@@ -55,6 +56,17 @@
 
     #handoff-text{width:100%;min-height:220px;border:1px solid #d1d5db;border-radius:10px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     .banner{padding:10px 12px;border-radius:8px;background:#e3f2fd;margin-top:10px;border:1px solid #90caf9;color:#0d47a1;font-weight:800}
+
+    /* NEW: Compact timer buttons on small screens (emoji labels) */
+    @media (max-width: 420px) {
+      #startTimer, #stopTimer, #resetTimer {
+        font-size: 0;         /* hide the original text */
+        padding: 6px 8px;     /* compact buttons */
+      }
+      #startTimer::after { content: "▶︎"; font-size: 16px; }
+      #stopTimer::after  { content: "⏸︎"; font-size: 16px; }
+      #resetTimer::after { content: "↺"; font-size: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -258,7 +270,7 @@
     const $$ = s=>Array.from(document.querySelectorAll(s));
     const pad2 = n=>String(n).padStart(2,'0');
 
-    const KEY='stroke_code_v6_state';
+    const KEY='stroke_code_v7_state';
     let state={
       tab:'prescreen',
       lkn:'', disc:'',
@@ -398,13 +410,10 @@
     }
 
     function compileNIHSSDeficits(){
-      // return a concise comma-separated list of nonzero NIHSS items, e.g. "L Arm=2, L Leg=2, Language=1"
       const parts=[];
       NIHSS.forEach(it=>{
         const v=Number(state.nihss[it.id]||0);
-        if(v>0){
-          parts.push(`${it.short}=${v}`);
-        }
+        if(v>0){ parts.push(`${it.short}=${v}`); }
       });
       return parts.join(', ');
     }
@@ -520,3 +529,8 @@
   </script>
 </body>
 </html>
+"""
+
+out = Path("/mnt/data/stroke_code_assistant_v7.html")
+out.write_text(html, encoding="utf-8")
+out.as_posix()
